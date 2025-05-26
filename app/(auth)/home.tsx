@@ -1,18 +1,17 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
+import { getAuth, signOut } from "@react-native-firebase/auth";
 
-import auth from "@react-native-firebase/auth";
+import Button from "../components/Button";
 
 const AuthIndex = () => {
-  const user = auth();
+  const auth = getAuth();
 
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Auth Index</Text>
-      <Text>{user.currentUser?.email}</Text>
+      <Text>{auth.currentUser?.email}</Text>
 
-      <Pressable onPress={() => auth().signOut()} style={styles.button}>
-        <Text>Sign Out</Text>
-      </Pressable>
+      <Button onPress={() => signOut(auth)} label="Sign Out" variant="dark" />
     </View>
   );
 };

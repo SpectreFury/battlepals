@@ -1,53 +1,54 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  Text,
   TextInput,
   View,
   StyleSheet,
   KeyboardAvoidingView,
-  Pressable,
-  ActivityIndicator,
+  Text,
 } from "react-native";
 
 import { FirebaseError } from "firebase/app";
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
-import { useRouter, useSegments } from "expo-router";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+} from "@react-native-firebase/auth";
+
+import Button from "./components/Button";
 
 export default function Index() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  const auth = getAuth();
 
   const signUp = async () => {
-    setLoading(true);
     try {
-      const user = await auth().createUserWithEmailAndPassword(email, password);
-      console.log("Signed up: ", user);
+      await createUserWithEmailAndPassword(auth, email, password);
     } catch (e) {
       const err = e as FirebaseError;
       alert("Registration failed: " + err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
   const signIn = async () => {
-    setLoading(true);
-
     try {
-      const user = await auth().signInWithEmailAndPassword(email, password);
-      console.log("Signed up: ", user);
+      await signInWithEmailAndPassword(auth, email, password);
     } catch (e) {
       const err = e as FirebaseError;
       alert("Login failed: " + err.message);
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView behavior="padding">
+      <View style={styles.titleContainer}>
+        <Text style={styles.title}>Battlepals</Text>
+        <Text style={styles.subtitle}>
+          An application to be more consistent with the help of your friends.
+        </Text>
+      </View>
+      <KeyboardAvoidingView behavior="padding" style={styles.formContainer}>
         <TextInput
           style={styles.input}
           placeholder="Email"
@@ -63,38 +64,8 @@ export default function Index() {
           onChangeText={setPassword}
           secureTextEntry
         />
-        {loading ? (
-          <ActivityIndicator />
-        ) : (
-          <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              {
-                backgroundColor: pressed ? "#f3f4f6" : "#fff",
-                borderColor: "#e5e7eb",
-              },
-            ]}
-            onPress={signIn}
-          >
-            <Text style={[styles.buttonText, { color: "#111" }]}>Login</Text>
-          </Pressable>
-        )}
-        {loading ? (
-          <ActivityIndicator />
-        ) : (
-          <Pressable
-            style={({ pressed }) => [
-              styles.button,
-              {
-                backgroundColor: pressed ? "#1e293b" : "#111827",
-                borderColor: "#111827",
-              },
-            ]}
-            onPress={signUp}
-          >
-            <Text style={[styles.buttonText, { color: "#fff" }]}>Signup</Text>
-          </Pressable>
-        )}
+        <Button onPress={signIn} variant="light" label="Login" />
+        <Button onPress={signUp} variant="dark" label="Sign Up" />
       </KeyboardAvoidingView>
     </View>
   );
@@ -104,7 +75,29 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 20,
     flex: 1,
-    justifyContent: "center",
+  },
+  titleContainer: {
+    marginTop: 200,
+    alignItems: "center",
+  },
+
+  formContainer: {
+    marginTop: 100,
+  },
+
+  title: {
+    fontSize: 32,
+    fontWeight: "bold",
+  },
+  subtitle: {
+    fontSize: 18,
+    color: "#7a7a7a",
+    textAlign: "center",
+    marginHorizontal: 24,
+    marginTop: 8,
+    fontWeight: "500",
+    lineHeight: 26,
+    letterSpacing: 0.2,
   },
 
   input: {
@@ -114,23 +107,5 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 10,
     backgroundColor: "#fff",
-  },
-  button: {
-    marginVertical: 4,
-    height: 48,
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "rgba(0,0,0,0.01)",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-  },
-  buttonText: {
-    fontWeight: "600",
-    fontSize: 16,
-    letterSpacing: 0.2,
   },
 });

@@ -1,17 +1,23 @@
 import { Stack } from "expo-router";
 import { Tabs, useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
-import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import {
+  getAuth,
+  onAuthStateChanged,
+  FirebaseAuthTypes,
+} from "@react-native-firebase/auth";
 
 export default function RootLayout() {
   const [user, setUser] = useState<FirebaseAuthTypes.User | null>(null);
   const [initializing, setInitializing] = useState(true);
 
+  const auth = getAuth();
+
   const router = useRouter();
   const segments = useSegments();
 
   useEffect(() => {
-    const unsubscribe = auth().onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (initializing) {
         setInitializing(false);
       }
@@ -25,7 +31,6 @@ export default function RootLayout() {
   useEffect(() => {
     if (initializing) return;
 
-    // If false, we're in public group
     const inAuthGroup = segments[0] === "(auth)";
 
     if (user && !inAuthGroup) {
