@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Text,
   TextInput,
   View,
   StyleSheet,
   KeyboardAvoidingView,
-  Button,
+  Pressable,
   ActivityIndicator,
 } from "react-native";
 
 import { FirebaseError } from "firebase/app";
-import auth from "@react-native-firebase/auth";
+import auth, { FirebaseAuthTypes } from "@react-native-firebase/auth";
+import { useRouter, useSegments } from "expo-router";
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -20,7 +21,8 @@ export default function Index() {
   const signUp = async () => {
     setLoading(true);
     try {
-      await auth().createUserWithEmailAndPassword(email, password);
+      const user = await auth().createUserWithEmailAndPassword(email, password);
+      console.log("Signed up: ", user);
     } catch (e) {
       const err = e as FirebaseError;
       alert("Registration failed: " + err.message);
@@ -33,7 +35,8 @@ export default function Index() {
     setLoading(true);
 
     try {
-      await auth().signInWithEmailAndPassword(email, password);
+      const user = await auth().signInWithEmailAndPassword(email, password);
+      console.log("Signed up: ", user);
     } catch (e) {
       const err = e as FirebaseError;
       alert("Login failed: " + err.message);
@@ -63,12 +66,34 @@ export default function Index() {
         {loading ? (
           <ActivityIndicator />
         ) : (
-          <Button title="Login" onPress={signIn} color="green" />
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              {
+                backgroundColor: pressed ? "#f3f4f6" : "#fff",
+                borderColor: "#e5e7eb",
+              },
+            ]}
+            onPress={signIn}
+          >
+            <Text style={[styles.buttonText, { color: "#111" }]}>Login</Text>
+          </Pressable>
         )}
         {loading ? (
           <ActivityIndicator />
         ) : (
-          <Button title="Signup" onPress={signUp} color="blue" />
+          <Pressable
+            style={({ pressed }) => [
+              styles.button,
+              {
+                backgroundColor: pressed ? "#1e293b" : "#111827",
+                borderColor: "#111827",
+              },
+            ]}
+            onPress={signUp}
+          >
+            <Text style={[styles.buttonText, { color: "#fff" }]}>Signup</Text>
+          </Pressable>
         )}
       </KeyboardAvoidingView>
     </View>
@@ -92,9 +117,20 @@ const styles = StyleSheet.create({
   },
   button: {
     marginVertical: 4,
-    height: 50,
+    height: 48,
     borderWidth: 1,
-    borderRadius: 4,
-    padding: 10,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "rgba(0,0,0,0.01)",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+  },
+  buttonText: {
+    fontWeight: "600",
+    fontSize: 16,
+    letterSpacing: 0.2,
   },
 });
