@@ -5,6 +5,7 @@ import {
   StyleSheet,
   KeyboardAvoidingView,
   Text,
+  Pressable,
 } from "react-native";
 
 import { FirebaseError } from "firebase/app";
@@ -12,9 +13,12 @@ import {
   getAuth,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  signInWithCredential,
 } from "@react-native-firebase/auth";
 
 import Button from "./components/Button";
+import GoogleButton from "./components/GoogleButton";
 
 export default function Index() {
   const [email, setEmail] = useState("");
@@ -22,21 +26,21 @@ export default function Index() {
 
   const auth = getAuth();
 
-  const signUp = async () => {
-    try {
-      await createUserWithEmailAndPassword(auth, email, password);
-    } catch (e) {
-      const err = e as FirebaseError;
-      alert("Registration failed: " + err.message);
-    }
-  };
-
   const signIn = async () => {
     try {
       await signInWithEmailAndPassword(auth, email, password);
     } catch (e) {
       const err = e as FirebaseError;
       alert("Login failed: " + err.message);
+    }
+  };
+
+  const signUp = async () => {
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+    } catch (e) {
+      const err = e as FirebaseError;
+      alert("Registration failed: " + err.message);
     }
   };
 
@@ -64,8 +68,16 @@ export default function Index() {
           onChangeText={setPassword}
           secureTextEntry
         />
-        <Button onPress={signIn} variant="light" label="Login" />
-        <Button onPress={signUp} variant="dark" label="Sign Up" />
+        <View>
+          <Button onPress={signIn} variant="light" label="Login" />
+          <Button onPress={signUp} variant="dark" label="Sign Up" />
+        </View>
+        <View style={styles.orContainer}>
+          <View style={styles.line} />
+          <Text style={styles.orText}>Or continue with</Text>
+          <View style={styles.line} />
+        </View>
+        <GoogleButton />
       </KeyboardAvoidingView>
     </View>
   );
@@ -107,5 +119,39 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     padding: 10,
     backgroundColor: "#fff",
+  },
+  orText: {
+    textAlign: "center",
+    marginHorizontal: 8,
+    color: "#7a7a7a",
+    fontWeight: "500",
+  },
+  orContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 16,
+  },
+  line: {
+    flex: 1,
+    height: 1,
+    backgroundColor: "#d1d1d1",
+  },
+  googleButton: {
+    backgroundColor: "#fff",
+    borderColor: "#4285F4",
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 8,
+  },
+  googleButtonText: {
+    color: "#4285F4",
+    fontWeight: "bold",
+    fontSize: 16,
+    marginLeft: 8,
   },
 });

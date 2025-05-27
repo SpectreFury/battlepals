@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { Tabs, useRouter, useSegments } from "expo-router";
+import { useRouter, useSegments } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   getAuth,
