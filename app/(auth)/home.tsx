@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
 import Activity from "../components/Activity";
-import { getFirestore, collection, query, where, orderBy, limit, getDocs, getDoc, doc } from '@react-native-firebase/firestore';
+import { getFirestore, collection, query, where, orderBy, limit, getDocs, getDoc, doc, onSnapshot } from '@react-native-firebase/firestore';
 import { useState, useEffect } from "react";
 
 interface ActivityData {
@@ -43,11 +43,20 @@ const AuthIndex = () => {
   const user = auth.currentUser;
   const [activities, setActivities] = useState<ActivityData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [groupsCount, setGroupsCount] = useState(0);
 
   useEffect(() => {
-    const fetchActivities = async () => {
+    const fetchUserData = async () => {
       try {
         const db = getFirestore();
+        
+        // Fetch user's groups
+        const groupsRef = collection(db, 'groups');
+        const groupsQuery = query(groupsRef, where('members', 'array-contains', user?.uid));
+        const groupsSnapshot = await getDocs(groupsQuery);
+        setGroupsCount(groupsSnapshot.size);
+
+        // Set up real-time listener for activities
         const activitiesRef = collection(db, 'workouts');
         const q = query(
           activitiesRef,
@@ -56,46 +65,51 @@ const AuthIndex = () => {
           limit(10)
         );
 
-        const snapshot = await getDocs(q);
-        const activitiesList = await Promise.all(snapshot.docs.map(async workoutDoc => {
-          const data = workoutDoc.data() as WorkoutData;
-          let groupName = 'Personal';
+        // Replace getDocs with onSnapshot
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+          const activitiesList = await Promise.all(snapshot.docs.map(async workoutDoc => {
+            const data = workoutDoc.data() as WorkoutData;
+            let groupName = 'Personal';
 
-          if (data.groupId) {
-            const groupRef = doc(db, 'groups', data.groupId);
-            const groupDoc = await getDoc(groupRef);
-            if (groupDoc.exists()) {
-              const groupData = groupDoc.data() as GroupData;
-              groupName = groupData.name;
+            if (data.groupId) {
+              const groupRef = doc(db, 'groups', data.groupId);
+              const groupDoc = await getDoc(groupRef);
+              if (groupDoc.exists()) {
+                const groupData = groupDoc.data() as GroupData;
+                groupName = groupData.name;
+              }
             }
-          }
 
-          return {
-            id: workoutDoc.id,
-            workoutType: data.workoutType,
-            groupName: groupName,
-            date: data.createdAt.toDate().toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            }),
-            user: {
-              name: user?.displayName || 'User',
-              photoURL: user?.photoURL || undefined
-            }
-          };
-        }));
+            return {
+              id: workoutDoc.id,
+              workoutType: data.workoutType,
+              groupName: groupName,
+              date: data.createdAt.toDate().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              }),
+              user: {
+                name: user?.displayName || 'User',
+                photoURL: user?.photoURL || undefined
+              }
+            };
+          }));
 
-        setActivities(activitiesList);
+          setActivities(activitiesList);
+          setLoading(false);
+        });
+
+        // Cleanup function to remove the listener when component unmounts
+        return () => unsubscribe();
       } catch (error) {
-        console.error('Error fetching activities:', error);
-      } finally {
+        console.error('Error fetching user data:', error);
         setLoading(false);
       }
     };
 
     if (user) {
-      fetchActivities();
+      fetchUserData();
     }
   }, [user]);
 
@@ -172,7 +186,7 @@ const AuthIndex = () => {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Text style={styles.statValue}>0</Text>
+              <Text style={styles.statValue}>{groupsCount}</Text>
               <Text style={styles.statLabel}>Groups</Text>
             </View>
             <View style={styles.statDivider} />
