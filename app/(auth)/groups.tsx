@@ -1,31 +1,20 @@
-import React from "react";
-import { View, Text, StyleSheet, TextInput, Pressable, ScrollView } from "react-native";
+import React, { useEffect } from "react";
+import { View, Text, StyleSheet, TextInput, Pressable, ScrollView, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { getFirestore, collection, getDocs, addDoc, query, where, updateDoc, doc, arrayUnion } from '@react-native-firebase/firestore'
+import { getAuth } from "@react-native-firebase/auth";
 
-// Mock data for groups
-const mockGroups = [
-  {
-    id: "1",
-    name: "Fitness Warriors",
-    members: 12,
-    description: "A group focused on strength training and cardio",
-  },
-  {
-    id: "2",
-    name: "Morning Runners",
-    members: 8,
-    description: "Early morning running group",
-  },
-  {
-    id: "3",
-    name: "Yoga Enthusiasts",
-    members: 15,
-    description: "Daily yoga practice and meditation",
-  },
-];
+type Group = {
+  id: string,
+  name: string,
+  description: string,
+  author: string,
+  members: string[],
+  createdAt: Date,
+}
 
 const GroupsPage = () => {
   const [isCreating, setIsCreating] = useState(false);
@@ -33,19 +22,103 @@ const GroupsPage = () => {
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [groupCode, setGroupCode] = useState("");
+  const [loading, setLoading] = useState(false)
+  const [groups, setGroups] = useState<Group[]>([])
 
-  const handleCreateGroup = () => {
-    // TODO: Implement group creation
-    setIsCreating(false);
-    setGroupName("");
-    setGroupDescription("");
+  const auth = getAuth()
+  const db = getFirestore();
+
+  const handleCreateGroup = async () => {
+    setLoading(true)
+    try {
+      const groupRef = collection(db, 'groups');
+
+      // Generate a random 6-character code
+      const groupCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      const docRef = await addDoc(groupRef, {
+        name: groupName,
+        description: groupDescription,
+        createdAt: new Date(),
+        author: auth.currentUser?.uid,
+        members: [auth.currentUser?.uid],
+        code: groupCode, // Add the group code
+      });
+
+      console.log('Group created with code:', groupCode);
+    } catch (error) {
+      console.error('Error creating group:', error);
+    } finally {
+      setLoading(false)
+      setIsCreating(false);
+      setGroupName("");
+      setGroupDescription("");
+    }
   };
 
-  const handleJoinGroup = () => {
-    // TODO: Implement group joining
-    setIsJoining(false);
-    setGroupCode("");
+  const handleJoinGroup = async () => {
+    if (!groupCode) return;
+
+    setLoading(true);
+    try {
+      const groupRef = collection(db, 'groups');
+      const q = query(groupRef, where('code', '==', groupCode));
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        // Group not found
+        alert('Invalid group code');
+        return;
+      }
+
+      const groupDoc = snapshot.docs[0];
+      const groupData = groupDoc.data();
+
+      // Check if user is already a member
+      if (groupData.members.includes(auth.currentUser?.uid)) {
+        alert('You are already a member of this group');
+        return;
+      }
+
+      // Add user to group members
+      await updateDoc(doc(db, 'groups', groupDoc.id), {
+        members: arrayUnion(auth.currentUser?.uid)
+      });
+
+      // Refresh groups list
+      const updatedGroups = [...groups, {
+        id: groupDoc.id,
+        ...groupData
+      }];
+      setGroups(updatedGroups as Group[]);
+
+      setIsJoining(false);
+      setGroupCode("");
+    } catch (error) {
+      console.error('Error joining group:', error);
+      alert('Failed to join group');
+    } finally {
+      setLoading(false);
+    }
   };
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      const groupRef = collection(db, 'groups')
+
+      const q = await query(groupRef, where('members', 'array-contains', auth.currentUser?.uid))
+      const snapshot = await getDocs(q)
+
+      const groups = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }))
+
+      setGroups(groups as Group[])
+    }
+
+    fetchGroups()
+  }, [])
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -80,13 +153,13 @@ const GroupsPage = () => {
 
               <View style={styles.groupsSection}>
                 <Text style={styles.sectionTitle}>My Groups</Text>
-                {mockGroups.map((group) => (
+                {groups.map((group) => (
                   <View key={group.id} style={styles.groupCard}>
                     <View style={styles.groupHeader}>
                       <Text style={styles.groupName}>{group.name}</Text>
                       <View style={styles.memberCount}>
                         <Ionicons name="people" size={16} color="#666" />
-                        <Text style={styles.memberCountText}>{group.members}</Text>
+                        <Text style={styles.memberCountText}>{group.members.length}</Text>
                       </View>
                     </View>
                     <Text style={styles.groupDescription}>{group.description}</Text>
@@ -135,8 +208,9 @@ const GroupsPage = () => {
                 <Pressable
                   style={[styles.button, styles.submitButton]}
                   onPress={handleCreateGroup}
+                  disabled={loading}
                 >
-                  <Text style={styles.submitButtonText}>Create Group</Text>
+                  {loading ? <ActivityIndicator size="small" color="#fff" /> : <Text style={styles.submitButtonText}>Create Group</Text>}
                 </Pressable>
               </View>
             </View>

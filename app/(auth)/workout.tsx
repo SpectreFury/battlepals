@@ -4,12 +4,15 @@ import {
   StyleSheet,
   TextInput,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { Picker } from "@react-native-picker/picker";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getFirestore, collection, getDocs, query, where, addDoc } from '@react-native-firebase/firestore';
+import { getAuth } from "@react-native-firebase/auth";
 
 type WorkoutType =
   | "chest"
@@ -20,13 +23,108 @@ type WorkoutType =
   | "fullBody"
   | "cardio";
 
+type Group = {
+  id: string;
+  name: string;
+  description: string;
+  author: string;
+  members: string[];
+  createdAt: Date;
+};
+
+const workoutTypesToDisplay = [
+  {
+    label: "Chest Day",
+    value: "chest",
+  },
+  {
+    label: "Back Day",
+    value: "back",
+  },
+  {
+    label: "Leg Day",
+    value: "legs",
+  },
+  {
+    label: "Shoulder Day",
+    value: "shoulders",
+  },
+  {
+    label: "Arm Day",
+    value: "arms",
+  },
+  {
+    label: "Full Body",
+    value: "fullBody",
+  },
+  {
+    label: "Cardio",
+    value: "cardio",
+  }
+]
+
 const WorkoutScreen = () => {
   const router = useRouter();
   const [workoutType, setWorkoutType] = useState<WorkoutType>("chest");
   const [workoutDetails, setWorkoutDetails] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState<string>("");
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    // TODO: Save workout data
+  const auth = getAuth();
+  const db = getFirestore();
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      setLoading(true);
+      try {
+        const groupRef = collection(db, 'groups');
+        const q = query(groupRef, where('members', 'array-contains', auth.currentUser?.uid));
+        const snapshot = await getDocs(q);
+
+        const userGroups = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Group[];
+
+
+        setGroups(userGroups);
+        if (userGroups.length > 0) {
+          setSelectedGroup(userGroups[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching groups:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchGroups();
+  }, []);
+
+  const handleSubmit = async () => {
+    // TODO: Save workout data with selected group
+    setLoading(true);
+
+    try {
+      const workoutRef = collection(db, 'workouts');
+
+      const workoutDoc = await addDoc(workoutRef, {
+        groupId: selectedGroup,
+        workoutType: workoutTypesToDisplay.find(type => type.value === workoutType)?.label || workoutType,
+        workoutDetails: workoutDetails,
+        createdAt: new Date(),
+        author: auth.currentUser?.uid,
+      })
+    }
+    catch (e) {
+      console.error('Error saving workout:', e);
+    }
+    finally {
+      setLoading(false);
+    }
+
+
     router.back();
   };
 
@@ -60,6 +158,25 @@ const WorkoutScreen = () => {
             </View>
           </View>
 
+          <View style={styles.pickerContainer}>
+            <Text style={styles.inputLabel}>Share with Group</Text>
+            <View style={styles.pickerWrapper}>
+              <Picker
+                selectedValue={selectedGroup}
+                onValueChange={(value) => setSelectedGroup(value)}
+                style={styles.picker}
+                enabled={groups.length > 0}
+              >
+                {groups.map((group) => (
+                  <Picker.Item key={group.id} label={group.name} value={group.id} />
+                ))}
+                {groups.length === 0 && (
+                  <Picker.Item label="No groups available" value="" />
+                )}
+              </Picker>
+            </View>
+          </View>
+
           <View style={styles.inputContainer}>
             <Text style={styles.inputLabel}>Workout Details</Text>
             <TextInput
@@ -72,9 +189,17 @@ const WorkoutScreen = () => {
             />
           </View>
 
-          <Pressable style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>Save Workout</Text>
-          </Pressable>
+          {loading ? (
+            <ActivityIndicator size="large" color="#000" />
+          ) : (
+            <Pressable
+              style={[styles.submitButton, (!selectedGroup || loading) && styles.submitButtonDisabled]}
+              onPress={handleSubmit}
+              disabled={!selectedGroup || loading}
+            >
+              <Text style={styles.submitButtonText}>Save Workout</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </SafeAreaView>
@@ -143,6 +268,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 8,
     alignItems: "center",
+  },
+  submitButtonDisabled: {
+    backgroundColor: "#ccc",
   },
   submitButtonText: {
     color: "#fff",

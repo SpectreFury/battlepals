@@ -4,15 +4,100 @@ import {
   StyleSheet,
   Pressable,
   Image,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { getAuth, signOut } from "@react-native-firebase/auth";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link } from "expo-router";
+import Activity from "../components/Activity";
+import { getFirestore, collection, query, where, orderBy, limit, getDocs, getDoc, doc } from '@react-native-firebase/firestore';
+import { useState, useEffect } from "react";
+
+interface ActivityData {
+  id: string;
+  workoutType: string;
+  groupName: string;
+  date: string;
+  user: {
+    name: string;
+    photoURL?: string;
+  };
+}
+
+interface WorkoutData {
+  workoutType: string;
+  groupId?: string;
+  createdAt: {
+    toDate: () => Date;
+  };
+}
+
+interface GroupData {
+  name: string;
+}
 
 const AuthIndex = () => {
   const auth = getAuth();
   const user = auth.currentUser;
+  const [activities, setActivities] = useState<ActivityData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const db = getFirestore();
+        const activitiesRef = collection(db, 'workouts');
+        const q = query(
+          activitiesRef,
+          where('author', '==', user?.uid),
+          orderBy('createdAt', 'desc'),
+          limit(10)
+        );
+
+        const snapshot = await getDocs(q);
+        const activitiesList = await Promise.all(snapshot.docs.map(async workoutDoc => {
+          const data = workoutDoc.data() as WorkoutData;
+          let groupName = 'Personal';
+
+          if (data.groupId) {
+            const groupRef = doc(db, 'groups', data.groupId);
+            const groupDoc = await getDoc(groupRef);
+            if (groupDoc.exists()) {
+              const groupData = groupDoc.data() as GroupData;
+              groupName = groupData.name;
+            }
+          }
+
+          return {
+            id: workoutDoc.id,
+            workoutType: data.workoutType,
+            groupName: groupName,
+            date: data.createdAt.toDate().toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            }),
+            user: {
+              name: user?.displayName || 'User',
+              photoURL: user?.photoURL || undefined
+            }
+          };
+        }));
+
+        setActivities(activitiesList);
+      } catch (error) {
+        console.error('Error fetching activities:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (user) {
+      fetchActivities();
+    }
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -22,9 +107,45 @@ const AuthIndex = () => {
     }
   };
 
+  const dummyActivities = [
+    {
+      id: 1,
+      title: "Morning Run",
+      workoutType: "Cardio",
+      groupName: "Running Club",
+      date: "March 15, 2024",
+      user: {
+        name: "John Doe",
+        photoURL: "https://i.pravatar.cc/150?img=1"
+      }
+    },
+    {
+      id: 2,
+      title: "Weight Training",
+      workoutType: "Strength",
+      groupName: "Gym Buddies",
+      date: "March 14, 2024",
+      user: {
+        name: "Sarah Smith",
+        photoURL: "https://i.pravatar.cc/150?img=2"
+      }
+    },
+    {
+      id: 3,
+      title: "Yoga Session",
+      workoutType: "Flexibility",
+      groupName: "Yoga Enthusiasts",
+      date: "March 13, 2024",
+      user: {
+        name: "Mike Johnson",
+        photoURL: "https://i.pravatar.cc/150?img=3"
+      }
+    },
+  ];
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
+      <ScrollView style={styles.container}>
         <View style={styles.profileCard}>
           <Pressable style={styles.signOutButton} onPress={handleSignOut}>
             <Ionicons name="log-out-outline" size={24} color="#7a7a7a" />
@@ -69,15 +190,29 @@ const AuthIndex = () => {
               <Text style={styles.actionButtonText}>Log Today's Workout</Text>
             </View>
           </Link>
-
-          <Link href="/(auth)/groups" style={styles.actionLink}>
-            <View style={styles.actionButton}>
-              <Ionicons name="people-outline" size={24} color="#333" />
-              <Text style={styles.actionButtonText}>Manage Groups</Text>
-            </View>
-          </Link>
         </View>
-      </View>
+
+        <View style={styles.activitiesContainer}>
+          <Text style={styles.sectionTitle}>Recent Activities</Text>
+          {loading ? (
+            <ActivityIndicator size="large" color="#000" />
+          ) : (
+            activities.map((activity) => (
+              <Activity
+                key={activity.id}
+                workoutType={activity.workoutType}
+                groupName={activity.groupName}
+                date={activity.date}
+                user={activity.user}
+                onPress={() => {
+                  // Handle activity press
+                  console.log("Activity pressed:", activity.id);
+                }}
+              />
+            ))
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 };
@@ -198,6 +333,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     marginLeft: 12,
+  },
+  activitiesContainer: {
+    padding: 16,
+    paddingTop: 0,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#000",
+    marginBottom: 16,
   },
 });
 
