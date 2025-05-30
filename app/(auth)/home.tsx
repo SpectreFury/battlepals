@@ -20,6 +20,7 @@ interface ActivityData {
   workoutType: string;
   groupName: string;
   date: string;
+  title: string;
   user: {
     name: string;
     photoURL?: string;
@@ -29,6 +30,7 @@ interface ActivityData {
 interface WorkoutData {
   workoutType: string;
   groupId?: string;
+  title: string;
   createdAt: {
     toDate: () => Date;
   };
@@ -49,7 +51,7 @@ const AuthIndex = () => {
     const fetchUserData = async () => {
       try {
         const db = getFirestore();
-        
+
         // Fetch user's groups
         const groupsRef = collection(db, 'groups');
         const groupsQuery = query(groupsRef, where('members', 'array-contains', user?.uid));
@@ -89,6 +91,7 @@ const AuthIndex = () => {
                 month: 'long',
                 day: 'numeric'
               }),
+              title: data.title,
               user: {
                 name: user?.displayName || 'User',
                 photoURL: user?.photoURL || undefined
@@ -218,6 +221,7 @@ const AuthIndex = () => {
                 groupName={activity.groupName}
                 date={activity.date}
                 user={activity.user}
+                title={activity.title}
                 onPress={() => {
                   // Handle activity press
                   console.log("Activity pressed:", activity.id);

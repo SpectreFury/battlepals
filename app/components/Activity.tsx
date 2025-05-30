@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Pressable, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface ActivityProps {
+  title: string;
   workoutType: string;
   groupName: string;
   date: string;
@@ -14,6 +15,7 @@ interface ActivityProps {
 }
 
 const Activity: React.FC<ActivityProps> = ({
+  title,
   workoutType,
   groupName,
   date,
@@ -24,7 +26,7 @@ const Activity: React.FC<ActivityProps> = ({
     <Pressable style={styles.container} onPress={onPress}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
-          <Text style={styles.title}>{workoutType}</Text>
+          <Text style={styles.title}>{title}</Text>
           <Text style={styles.date}>{date}</Text>
         </View>
         <Ionicons name="chevron-forward" size={24} color="#7a7a7a" />

@@ -66,7 +66,7 @@ const workoutTypesToDisplay = [
 const WorkoutScreen = () => {
   const router = useRouter();
   const [workoutType, setWorkoutType] = useState<WorkoutType>("chest");
-  const [workoutDetails, setWorkoutDetails] = useState("");
+  const [title, setTitle] = useState("");
   const [selectedGroup, setSelectedGroup] = useState<string>("");
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(false);
@@ -103,7 +103,6 @@ const WorkoutScreen = () => {
   }, []);
 
   const handleSubmit = async () => {
-    // TODO: Save workout data with selected group
     setLoading(true);
 
     try {
@@ -112,7 +111,7 @@ const WorkoutScreen = () => {
       const workoutDoc = await addDoc(workoutRef, {
         groupId: selectedGroup,
         workoutType: workoutTypesToDisplay.find(type => type.value === workoutType)?.label || workoutType,
-        workoutDetails: workoutDetails,
+        title: title,
         createdAt: new Date(),
         author: auth.currentUser?.uid,
       })
@@ -123,7 +122,6 @@ const WorkoutScreen = () => {
     finally {
       setLoading(false);
     }
-
 
     router.back();
   };
@@ -178,14 +176,12 @@ const WorkoutScreen = () => {
           </View>
 
           <View style={styles.inputContainer}>
-            <Text style={styles.inputLabel}>Workout Details</Text>
+            <Text style={styles.inputLabel}>Workout Title</Text>
             <TextInput
               style={styles.textInput}
-              multiline
-              numberOfLines={4}
-              placeholder="What exercises did you do today?"
-              value={workoutDetails}
-              onChangeText={setWorkoutDetails}
+              placeholder="Enter workout title"
+              value={title}
+              onChangeText={setTitle}
             />
           </View>
 
@@ -259,8 +255,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    minHeight: 100,
-    textAlignVertical: "top",
     backgroundColor: "#fff",
   },
   submitButton: {
