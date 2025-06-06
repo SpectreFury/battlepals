@@ -14,7 +14,7 @@ class _NavbarWidgetState extends State<NavbarWidget> {
       builder: (context, currentPage, child) => NavigationBar(
         destinations: [
           NavigationDestination(icon: Icon(Icons.home), label: "Home"),
-          NavigationDestination(icon: Icon(Icons.settings), label: "Settings"),
+          NavigationDestination(icon: Icon(Icons.track_changes), label: "Track"),
         ],
         selectedIndex: currentPage,
         onDestinationSelected: (int index) {

@@ -2,6 +2,7 @@ import 'package:battlepals/data/notifiers.dart';
 import 'package:battlepals/views/pages/home_page.dart';
 import 'package:battlepals/views/pages/track_page.dart';
 import 'package:battlepals/views/widgets/navbar_widget.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class WidgetTree extends StatefulWidget {
@@ -14,6 +15,8 @@ class WidgetTree extends StatefulWidget {
 List<Widget> pages = [HomePageWidget(), TrackPageWidget()];
 
 class _WidgetTreeState extends State<WidgetTree> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
@@ -26,6 +29,12 @@ class _WidgetTreeState extends State<WidgetTree> {
               icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
               onPressed: () {
                 isDarkModeNotifier.value = !isDark;
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () {
+                _auth.signOut();
               },
             ),
           ],

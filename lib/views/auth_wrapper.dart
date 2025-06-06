@@ -14,17 +14,15 @@ class AuthWrapper extends StatelessWidget {
         // Show loading indicator while checking authentication state
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            body: Center(
-              child: CircularProgressIndicator(),
-            ),
+            body: Center(child: CircularProgressIndicator()),
           );
         }
-        
+
         // If user is logged in, show main app
         if (snapshot.hasData && snapshot.data != null) {
           return const WidgetTree();
         }
-        
+
         // If user is not logged in, show login page
         return const LoginPageWidget();
       },
