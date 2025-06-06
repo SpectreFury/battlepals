@@ -1,9 +1,15 @@
+import 'package:battlepals/data/notifiers.dart';
+import 'package:battlepals/firebase_options.dart';
 import 'package:battlepals/views/pages/home_page.dart';
+import 'package:battlepals/views/pages/login_page.dart';
 import 'package:battlepals/views/pages/track_page.dart';
-import 'package:battlepals/views/widget_tree.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(const MyApp());
 }
 
@@ -15,13 +21,19 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+    return ValueListenableBuilder(
+      valueListenable: isDarkModeNotifier,
+      builder: (context, isDark, child) => MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Flutter Demo',
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.indigo,
+            brightness: isDark ? Brightness.dark : Brightness.light,
+          ),
+        ),
+        home: LoginPageWidget(),
       ),
-      home: WidgetTree(),
     );
   }
 }

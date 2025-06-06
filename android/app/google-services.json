@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "839451011418",
+    "project_id": "battlepals-33ed1",
+    "storage_bucket": "battlepals-33ed1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839451011418:android:f61d2bd3198a0c160cab63",
+        "android_client_info": {
+          "package_name": "com.example.battlepals"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "839451011418-q0u690mp4imj5gjstrpo82qo2hf0udfj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFfbSRsEImdHOX-643_p92DwS-tSQFDlY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "839451011418-q0u690mp4imj5gjstrpo82qo2hf0udfj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
