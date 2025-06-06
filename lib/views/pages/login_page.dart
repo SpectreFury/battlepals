@@ -1,4 +1,3 @@
-import 'package:battlepals/views/widget_tree.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -48,12 +47,8 @@ class _LoginPageWidgetState extends State<LoginPageWidget> {
 
                 if (user == null) return;
 
-                if (context.mounted) {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const WidgetTree()),
-                  );
-                }
+                // AuthWrapper will automatically handle navigation
+                // when FirebaseAuth.instance.authStateChanges() detects the user
               },
               icon: Image.network(
                 'https://developers.google.com/identity/images/g-logo.png',
