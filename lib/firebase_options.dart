@@ -63,7 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '839451011418',
     projectId: 'battlepals-33ed1',
     storageBucket: 'battlepals-33ed1.firebasestorage.app',
-    iosClientId: '839451011418-l07dev505nje32aof5fcn7amm0k734q2.apps.googleusercontent.com',
+    iosClientId:
+        '839451011418-l07dev505nje32aof5fcn7amm0k734q2.apps.googleusercontent.com',
     iosBundleId: 'com.example.battlepals',
   );
 
@@ -73,7 +74,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '839451011418',
     projectId: 'battlepals-33ed1',
     storageBucket: 'battlepals-33ed1.firebasestorage.app',
-    iosClientId: '839451011418-l07dev505nje32aof5fcn7amm0k734q2.apps.googleusercontent.com',
+    iosClientId:
+        '839451011418-l07dev505nje32aof5fcn7amm0k734q2.apps.googleusercontent.com',
     iosBundleId: 'com.example.battlepals',
   );
 
