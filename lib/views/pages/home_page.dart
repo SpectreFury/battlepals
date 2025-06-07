@@ -18,10 +18,42 @@ class _HomePageWidgetState extends State<HomePageWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return Padding(
+      padding: EdgeInsets.only(left: 16.0, right: 16.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [const Text("Home Page Widget")],
+        children: [
+          SizedBox(height: 50),
+          Container(
+            child: Column(
+              children: [
+                Text(
+                  "Good Morning, ${_auth.currentUser?.displayName}",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          Divider(),
+          Expanded(
+            child: ListView(
+              children: [
+                ListTile(
+                  title: Text("Back Day"),
+                  subtitle: Text("Deadlifts, Pull-ups, Rows"),
+                  trailing: CircleAvatar(
+                    backgroundColor: Colors.blue,
+                    backgroundImage: _auth.currentUser?.photoURL != null
+                        ? NetworkImage(_auth.currentUser!.photoURL!)
+                        : null,
+                    child: _auth.currentUser?.photoURL == null
+                        ? Icon(Icons.person)
+                        : null,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,7 +1,5 @@
 import 'package:battlepals/data/notifiers.dart';
 import 'package:battlepals/firebase_options.dart';
-import 'package:battlepals/views/pages/home_page.dart';
-import 'package:battlepals/views/pages/track_page.dart';
 import 'package:battlepals/views/auth_wrapper.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -13,10 +11,9 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-List<Widget> pages = [HomePageWidget(), TrackPageWidget()];
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+
 
   // This widget is the root of your application.
   @override
