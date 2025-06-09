@@ -9,29 +9,6 @@ class TrackGymPage extends StatefulWidget {
 }
 
 class _TrackGymPageState extends State<TrackGymPage> {
-  void _showMultiSelect() async {
-    final selectedExercises = await showDialog<List<String>>(
-      context: context,
-      builder: (context) {
-        return MultiSelect(
-          items: [
-            "Bench Press",
-            "Squats",
-            "Deadlifts",
-            "Pull-Ups",
-            "Push-Ups",
-            "Lunges",
-            "Shoulder Press",
-          ],
-        );
-      },
-    );
-
-    if (selectedExercises != null) {
-      print("Selected Exercises: $selectedExercises");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,24 +19,38 @@ class _TrackGymPageState extends State<TrackGymPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           spacing: 10,
           children: [
-            // Dropdown for selecting exercise
-            Text("Select Muscle Group"),
-            DropdownMenu(
-              onSelected: (value) {
-                print("Selected Muscle Group: $value");
-              },
-              width: double.infinity,
-              dropdownMenuEntries: [
-                DropdownMenuEntry(label: "Chest", value: "chest"),
-                DropdownMenuEntry(label: "Back", value: "back"),
-                DropdownMenuEntry(label: "Legs", value: "legs"),
-                DropdownMenuEntry(label: "Shoulders", value: "shoulders"),
+            Row(
+              children: [
+                Expanded(
+                  child: MultiSelect(
+                    items: [
+                      "Chest",
+                      "Back",
+                      "Legs",
+                      "Arms",
+                      "Shoulders",
+                      "Core",
+                    ],
+                    title: "Select Muscle Groups",
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: MultiSelect(
+                    items: [
+                      "Bench Press",
+                      "Deadlift",
+                      "Squat",
+                      "Pull-up",
+                      "Push-up",
+                      "Lunges",
+                    ],
+                    title: "Select Exercises",
+                  ),
+                ),
               ],
             ),
-            ElevatedButton(
-              onPressed: _showMultiSelect,
-              child: Text("Select Exercises"),
-            ),
+            OutlinedButton(onPressed: () {}, child: Text("Add Workout")),
           ],
         ),
       ),
