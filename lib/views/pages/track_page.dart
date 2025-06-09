@@ -1,3 +1,5 @@
+import 'package:battlepals/views/pages/track_diet_page.dart';
+import 'package:battlepals/views/pages/track_gym_page.dart';
 import 'package:flutter/material.dart';
 
 class TrackPageWidget extends StatelessWidget {
@@ -73,6 +75,51 @@ class TrackPageWidget extends StatelessWidget {
             ),
           ),
           Divider(),
+          SizedBox(height: 10),
+          InkWell(
+            onTap: () {
+              // Handle the tap event
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TrackGymPage()),
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.fitness_center),
+                  SizedBox(width: 8.0),
+                  Text("Track Gym"),
+                ],
+              ),
+            ),
+          ),
+          InkWell(
+            onTap: () {
+              // Handle the tap event
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => TrackDietPage()),
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.all(16.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.food_bank),
+                  SizedBox(width: 8.0),
+                  Text("Track Diet"),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
